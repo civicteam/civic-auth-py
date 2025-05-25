@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Civic Auth Django Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        .info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hello, {{ user.name|default:"User" }}!</h1>
+    <p>Welcome to the admin area.</p>
+    
+    <div class="info">
+        <h3>Your Information:</h3>
+        <p><strong>Email:</strong> {{ user.email|default:"N/A" }}</p>
+        <p><strong>ID:</strong> {{ user.id|default:"N/A" }}</p>
+        {% if user.username %}
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        {% endif %}
+        {% if user.picture %}
+        <p><strong>Picture:</strong> <img src="{{ user.picture }}" alt="Profile" style="max-width: 100px; border-radius: 50%;"></p>
+        {% endif %}
+    </div>
+    
+    <button onclick="window.location.href='/auth/logout'">Logout</button>
+</body>
+</html>
