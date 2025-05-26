@@ -13,14 +13,12 @@ try:
     from django.conf import settings
     from django.urls import path
 except ImportError:
-    raise ImportError(
-        "Django is not installed. Install it with: pip install civic-auth[django]"
-    )
+    raise ImportError("Django is not installed. Install it with: pip install civic-auth[django]")
 
 
 class DjangoCookieStorage(CookieStorage):
     """Django-specific cookie storage implementation."""
-    
+
     def __init__(self, request: HttpRequest, settings: Optional[CookieSettings] = None):
         # Default to secure=False for local development
         default_settings = {"secure": False}
@@ -30,26 +28,26 @@ class DjangoCookieStorage(CookieStorage):
         self._request = request
         self._cookies_to_set: Dict[str, tuple[str, Dict[str, Any]]] = {}
         self._cookies_to_delete: set[str] = set()
-    
+
     async def get(self, key: str) -> Optional[str]:
         """Get a value from Django cookies."""
         return self._request.COOKIES.get(key)
-    
+
     async def set(self, key: str, value: str) -> None:
         """Set a cookie value (queued until response)."""
         self._cookies_to_set[key] = (value, self.settings.copy())
         self._cookies_to_delete.discard(key)
-    
+
     async def delete(self, key: str) -> None:
         """Delete a cookie (queued until response)."""
         self._cookies_to_delete.add(key)
         self._cookies_to_set.pop(key, None)
-    
+
     async def clear(self) -> None:
         """Clear all cookies."""
         for key in self._request.COOKIES:
             await self.delete(key)
-    
+
     def apply_to_response(self, response: HttpResponse) -> HttpResponse:
         """Apply queued cookie operations to Django response."""
         # Set cookies
@@ -62,56 +60,54 @@ class DjangoCookieStorage(CookieStorage):
                 httponly=settings.get("http_only", True),
                 samesite=settings.get("same_site", "lax"),
                 path=settings.get("path", "/"),
-                domain=settings.get("domain")
+                domain=settings.get("domain"),
             )
-        
+
         # Delete cookies
         for key in self._cookies_to_delete:
             response.delete_cookie(key, path=self.settings.get("path", "/"))
-        
+
         return response
 
 
 class CivicAuthMiddleware:
     """Django middleware for Civic Auth."""
-    
+
     def __init__(self, get_response):
         self.get_response = get_response
         self.config = self._get_config()
-        
+
     def _get_config(self) -> AuthConfig:
         """Get Civic Auth config from Django settings."""
-        if not hasattr(settings, 'CIVIC_AUTH'):
+        if not hasattr(settings, "CIVIC_AUTH"):
             raise ImproperlyConfigured(
                 "CIVIC_AUTH configuration not found in settings. "
                 "Please add CIVIC_AUTH dictionary to your Django settings."
             )
-        
+
         config = settings.CIVIC_AUTH
-        required_fields = ['client_id', 'redirect_url']
-        
+        required_fields = ["client_id", "redirect_url"]
+
         for field in required_fields:
             if field not in config:
-                raise ImproperlyConfigured(
-                    f"CIVIC_AUTH['{field}'] is required in Django settings."
-                )
-        
+                raise ImproperlyConfigured(f"CIVIC_AUTH['{field}'] is required in Django settings.")
+
         return config
-    
+
     def __call__(self, request):
         # Create storage and auth instances
         request.civic_storage = DjangoCookieStorage(request)
         request.civic_auth = CivicAuth(request.civic_storage, self.config)
-        
+
         # Get response
         response = self.get_response(request)
-        
+
         # Apply cookies to response
-        if hasattr(request, 'civic_storage'):
+        if hasattr(request, "civic_storage"):
             request.civic_storage.apply_to_response(response)
-        
+
         # Clean up
-        if hasattr(request, 'civic_auth'):
+        if hasattr(request, "civic_auth"):
             # Run async cleanup in sync context
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -122,20 +118,21 @@ class CivicAuthMiddleware:
                 pass
             finally:
                 loop.close()
-        
+
         return response
 
 
 def civic_auth_required(view_func):
     """Decorator to require authentication for Django views."""
+
     @wraps(view_func)
     def wrapped_view(request, *args, **kwargs):
-        if not hasattr(request, 'civic_auth'):
+        if not hasattr(request, "civic_auth"):
             raise ImproperlyConfigured(
                 "CivicAuthMiddleware not installed. "
                 "Add 'civic_auth.integrations.django.CivicAuthMiddleware' to MIDDLEWARE."
             )
-        
+
         # Check authentication in async context
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -143,33 +140,34 @@ def civic_auth_required(view_func):
             is_logged_in = loop.run_until_complete(request.civic_auth.is_logged_in())
             if not is_logged_in:
                 return HttpResponse("Unauthorized", status=401)
-            
+
             # Get user info
             request.civic_user = loop.run_until_complete(request.civic_auth.get_user())
         finally:
             loop.close()
-        
+
         return view_func(request, *args, **kwargs)
-    
+
     return wrapped_view
 
 
 def civic_auth_required_async(view_func):
     """Decorator to require authentication for async Django views."""
+
     @wraps(view_func)
     async def wrapped_view(request, *args, **kwargs):
-        if not hasattr(request, 'civic_auth'):
+        if not hasattr(request, "civic_auth"):
             raise ImproperlyConfigured(
                 "CivicAuthMiddleware not installed. "
                 "Add 'civic_auth.integrations.django.CivicAuthMiddleware' to MIDDLEWARE."
             )
-        
+
         if not await request.civic_auth.is_logged_in():
             return HttpResponse("Unauthorized", status=401)
-        
+
         request.civic_user = await request.civic_auth.get_user()
         return await view_func(request, *args, **kwargs)
-    
+
     return wrapped_view
 
 
@@ -186,7 +184,7 @@ def run_async(coro):
 
 def get_civic_auth(request) -> CivicAuth:
     """Get CivicAuth instance from request."""
-    if not hasattr(request, 'civic_auth'):
+    if not hasattr(request, "civic_auth"):
         raise ImproperlyConfigured(
             "CivicAuthMiddleware not installed. "
             "Add 'civic_auth.integrations.django.CivicAuthMiddleware' to MIDDLEWARE."
@@ -211,32 +209,32 @@ def login(request):
     """Redirect to Civic Auth login."""
     auth = get_civic_auth(request)
     url = run_async(auth.build_login_url())
-    
+
     # Create redirect response and apply cookies
     response = HttpResponseRedirect(url)
-    if hasattr(request, 'civic_storage'):
+    if hasattr(request, "civic_storage"):
         request.civic_storage.apply_to_response(response)
-    
+
     return response
 
 
 def callback(request):
     """Handle OAuth callback."""
-    code = request.GET.get('code')
-    state = request.GET.get('state')
-    
+    code = request.GET.get("code")
+    state = request.GET.get("state")
+
     if not code or not state:
         return HttpResponse("Missing code or state parameter", status=400)
-    
+
     auth = get_civic_auth(request)
     try:
         run_async(auth.resolve_oauth_access_code(code, state))
-        
+
         # Create redirect response and apply cookies
-        response = HttpResponseRedirect('/admin/hello')
-        if hasattr(request, 'civic_storage'):
+        response = HttpResponseRedirect("/admin/hello")
+        if hasattr(request, "civic_storage"):
             request.civic_storage.apply_to_response(response)
-        
+
         return response
     except Exception as e:
         return HttpResponse(f"Auth failed: {str(e)}", status=400)
@@ -246,40 +244,37 @@ def logout(request):
     """Logout and redirect."""
     auth = get_civic_auth(request)
     url = run_async(auth.build_logout_redirect_url())
-    
+
     # Create redirect response and apply cookies
     response = HttpResponseRedirect(url)
-    if hasattr(request, 'civic_storage'):
+    if hasattr(request, "civic_storage"):
         request.civic_storage.apply_to_response(response)
-    
+
     return response
 
 
 def logout_callback(request):
     """Handle logout callback from Civic Auth."""
     # Simply redirect to home after logout is complete
-    return HttpResponseRedirect('/')
+    return HttpResponseRedirect("/")
 
 
 @civic_auth_required
 def get_user(request):
     """Get current user info."""
     user = request.civic_user
-    return JsonResponse({
-        'id': user.id,
-        'email': user.email,
-        'name': user.name,
-        'picture': user.picture
-    })
+    return JsonResponse(
+        {"id": user.id, "email": user.email, "name": user.name, "picture": user.picture}
+    )
 
 
 # URL patterns for auth endpoints
 def get_auth_urls():
     """Get Django URL patterns for auth endpoints."""
     return [
-        path('auth/login/', login, name='civic_auth_login'),
-        path('auth/callback/', callback, name='civic_auth_callback'),
-        path('auth/logout/', logout, name='civic_auth_logout'),
-        path('auth/logoutcallback/', logout_callback, name='civic_auth_logout_callback'),
-        path('auth/user/', get_user, name='civic_auth_user'),
+        path("auth/login/", login, name="civic_auth_login"),
+        path("auth/callback/", callback, name="civic_auth_callback"),
+        path("auth/logout/", logout, name="civic_auth_logout"),
+        path("auth/logoutcallback/", logout_callback, name="civic_auth_logout_callback"),
+        path("auth/user/", get_user, name="civic_auth_user"),
     ]

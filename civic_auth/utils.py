@@ -21,14 +21,16 @@ def generate_random_string(length: int = 32) -> str:
 def generate_pkce_challenge() -> Dict[str, str]:
     """Generate PKCE challenge and verifier."""
     code_verifier = generate_random_string(128)
-    code_challenge = base64.urlsafe_b64encode(
-        hashlib.sha256(code_verifier.encode()).digest()
-    ).decode().rstrip("=")
-    
+    code_challenge = (
+        base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest())
+        .decode()
+        .rstrip("=")
+    )
+
     return {
         "code_verifier": code_verifier,
         "code_challenge": code_challenge,
-        "code_challenge_method": "S256"
+        "code_challenge_method": "S256",
     }
 
 

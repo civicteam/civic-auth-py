@@ -6,6 +6,7 @@ from datetime import datetime
 
 class BaseUser(TypedDict, total=False):
     """Base user type containing common user properties."""
+
     id: str
     email: Optional[str]
     username: Optional[str]
@@ -18,6 +19,7 @@ class BaseUser(TypedDict, total=False):
 
 class Tokens(TypedDict, total=False):
     """OAuth tokens."""
+
     access_token: str
     id_token: str
     refresh_token: Optional[str]
@@ -28,6 +30,7 @@ class Tokens(TypedDict, total=False):
 
 class AuthConfig(TypedDict, total=False):
     """Configuration for Civic Auth."""
+
     client_id: str
     redirect_url: str
     oauth_server: Optional[str]
@@ -39,6 +42,7 @@ class AuthConfig(TypedDict, total=False):
 
 class PKCEChallenge(TypedDict):
     """PKCE challenge data."""
+
     code_verifier: str
     code_challenge: str
     code_challenge_method: str
@@ -46,6 +50,7 @@ class PKCEChallenge(TypedDict):
 
 class CookieSettings(TypedDict, total=False):
     """Cookie configuration settings."""
+
     secure: bool
     http_only: bool
     same_site: str
