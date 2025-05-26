@@ -1,5 +1,9 @@
 # Civic Auth Python SDK
 
+[![PyPI version](https://badge.fury.io/py/civic-auth.svg)](https://pypi.org/project/civic-auth/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/civic-auth.svg)](https://pypi.org/project/civic-auth/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Python SDK for Civic Auth server-side authentication. This library provides a Python implementation that matches the API of the [Node.js Civic Auth library](https://github.com/civicteam/civic-auth).
 
 ## What is Civic Auth?
@@ -208,8 +212,12 @@ See the [examples](examples/) directory for complete working examples:
 git clone https://github.com/civicteam/civic-auth-py.git
 cd civic-auth-py
 
-# Install development dependencies
-pip install -e ".[dev]"
+# Create a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install in development mode with all dependencies
+pip install -e ".[dev,all]"
 ```
 
 ### Testing
