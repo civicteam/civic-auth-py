@@ -7,8 +7,8 @@ from civic_auth import AuthConfig, BaseUser, CivicAuth, CookieSettings, CookieSt
 try:
     from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
     from fastapi.responses import RedirectResponse
-except ImportError:
-    raise ImportError("FastAPI is not installed. Install it with: pip install civic-auth[fastapi]")
+except ImportError as e:
+    raise ImportError("FastAPI is not installed. Install it with: pip install civic-auth[fastapi]") from e
 
 
 class FastAPICookieStorage(CookieStorage):
@@ -131,7 +131,7 @@ def create_auth_router(config: AuthConfig) -> APIRouter:
 
             return redirect_response
         except Exception as e:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
     @router.get("/auth/logout")
     async def logout(request: Request):

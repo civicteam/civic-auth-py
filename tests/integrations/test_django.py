@@ -9,10 +9,11 @@ import django
 
 django.setup()
 
-from django.http import HttpResponse
-from django.test import RequestFactory
+# noqa imports below need to come after django.setup()
+from django.http import HttpResponse  # noqa: E402
+from django.test import RequestFactory  # noqa: E402
 
-from civic_auth.integrations.django import (
+from civic_auth.integrations.django import (  # noqa: E402
     CivicAuthMiddleware,
     DjangoCookieStorage,
     civic_auth_required,

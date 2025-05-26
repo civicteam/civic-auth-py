@@ -53,7 +53,7 @@ jobs:
     
     - name: Test with pytest
       run: |
-        pytest -v --cov=civic_auth --cov-report=xml --cov-report=term
+        pytest -v tests/test_auth.py --cov=civic_auth --cov-report=xml --cov-report=term
     
     - name: Upload coverage to Codecov
       if: matrix.python-version == '3.11'

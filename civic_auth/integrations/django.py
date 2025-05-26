@@ -11,9 +11,8 @@ try:
     from django.core.exceptions import ImproperlyConfigured
     from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
     from django.urls import path
-    from django.utils.decorators import sync_and_async_middleware
-except ImportError:
-    raise ImportError("Django is not installed. Install it with: pip install civic-auth[django]")
+except ImportError as e:
+    raise ImportError("Django is not installed. Install it with: pip install civic-auth[django]") from e
 
 
 class DjangoCookieStorage(CookieStorage):
