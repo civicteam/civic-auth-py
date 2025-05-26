@@ -9,7 +9,7 @@ Civic Auth is a flexible authentication and user management solution that provid
 Key features:
 - **Multiple sign-in options** - Email, social providers, passkeys, and Web3 wallets
 - **Privacy-preserving** - Built with user privacy at its core
-- **Flexible integration** - Works with any Python web framework
+- **Flexible integration** - Works with any web framework
 - **Embedded wallets** - Optional Web3 capabilities for blockchain applications
 - **User verification** - Support for identity proofs and credentials
 
@@ -45,7 +45,10 @@ from civic_auth.integrations.fastapi import create_auth_router, create_auth_depe
 app = FastAPI()
 
 # Configure
-config = {"client_id": "your-client-id", "redirect_url": "..."}
+config = {
+    "client_id": "your-client-id",  # Get this from auth.civic.com
+    "redirect_url": "..."
+}
 
 # Add auth routes  
 app.include_router(create_auth_router(config))
@@ -70,7 +73,10 @@ from civic_auth.integrations.flask import init_civic_auth, create_auth_blueprint
 app = Flask(__name__)
 
 # Configure and initialize
-config = {"client_id": "your-client-id", "redirect_url": "..."}
+config = {
+    "client_id": "your-client-id",  # Get this from auth.civic.com
+    "redirect_url": "..."
+}
 init_civic_auth(app, config)
 app.register_blueprint(create_auth_blueprint(config))
 
@@ -94,7 +100,7 @@ MIDDLEWARE = [
 ]
 
 CIVIC_AUTH = {
-    'client_id': 'your-client-id',
+    'client_id': 'your-client-id',  # Get this from auth.civic.com
     'redirect_url': '...',
 }
 
@@ -167,7 +173,7 @@ from civic_auth.types import BaseUser, AuthConfig, Tokens
 
 # AuthConfig
 {
-    "client_id": str,  # Required
+    "client_id": str,  # Required - Get this from auth.civic.com
     "redirect_url": str,  # Required
     "oauth_server": Optional[str],  # Default: "https://auth.civic.com/oauth"
     "post_logout_redirect_url": Optional[str],

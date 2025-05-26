@@ -21,7 +21,7 @@ app.secret_key = os.urandom(24)
 # Configure Civic Auth
 PORT = int(os.getenv("PORT", 8000))
 config = {
-    "client_id": os.getenv("CLIENT_ID"),
+    "client_id": os.getenv("CLIENT_ID"),  # Get this from auth.civic.com
     "redirect_url": f"http://localhost:{PORT}/auth/callback",
     "post_logout_redirect_url": f"http://localhost:{PORT}/",
 }
