@@ -36,7 +36,7 @@ class CivicAuth:
         """Initialize CivicAuth with storage and configuration."""
         self.storage = storage
         self.config = self._validate_config(config)
-        self.oauth_server = config.get("oauth_server", self.DEFAULT_OAUTH_SERVER)
+        self.oauth_server = config.get("oauth_server") or self.DEFAULT_OAUTH_SERVER
         self.client = httpx.AsyncClient()
         self._endpoints: Optional[Dict[str, str]] = None  # Will be populated by OIDC discovery
         self._discovery_url = f"{self.oauth_server}/.well-known/openid-configuration"
@@ -97,6 +97,7 @@ class CivicAuth:
                 return None
 
         # Parse user info from ID token
+        assert id_token is not None  # We've already checked this above
         claims = parse_jwt_without_validation(id_token)
         if not claims:
             return None
