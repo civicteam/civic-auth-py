@@ -36,84 +36,73 @@ pip install "civic-auth[django]"
 
 ### FastAPI Integration
 
+[Full example →](examples/fastapi/)
+
 ```python
 from fastapi import FastAPI, Depends
-from civic_auth import BaseUser
 from civic_auth.integrations.fastapi import create_auth_router, create_auth_dependencies
 
 app = FastAPI()
 
 # Configure
-config = {
-    "client_id": "your-client-id",
-    "redirect_url": "http://localhost:8000/auth/callback",
-}
+config = {"client_id": "your-client-id", "redirect_url": "..."}
 
-# Add auth routes
-auth_router = create_auth_router(config)
-app.include_router(auth_router)
+# Add auth routes  
+app.include_router(create_auth_router(config))
 
 # Create dependencies
 civic_auth_dep, get_current_user, require_auth = create_auth_dependencies(config)
 
 # Protected route
 @app.get("/protected", dependencies=[Depends(require_auth)])
-async def protected(user: BaseUser = Depends(get_current_user)):
+async def protected(user = Depends(get_current_user)):
     return f"Hello {user.name}!"
 ```
 
 ### Flask Integration
 
+[Full example →](examples/flask/)
+
 ```python
 from flask import Flask
-from civic_auth.integrations.flask import (
-    init_civic_auth, 
-    create_auth_blueprint, 
-    civic_auth_required,
-    get_civic_user
-)
+from civic_auth.integrations.flask import init_civic_auth, create_auth_blueprint, civic_auth_required
 
 app = Flask(__name__)
 
-# Configure
-config = {
-    "client_id": "your-client-id",
-    "redirect_url": "http://localhost:8000/auth/callback",
-}
-
-# Initialize
+# Configure and initialize
+config = {"client_id": "your-client-id", "redirect_url": "..."}
 init_civic_auth(app, config)
-auth_bp = create_auth_blueprint(config)
-app.register_blueprint(auth_bp)
+app.register_blueprint(create_auth_blueprint(config))
 
 # Protected route
 @app.route("/protected")
 @civic_auth_required
 async def protected():
-    user = await get_civic_user()
-    return f"Hello {user.name}!"
+    # user available via get_civic_user()
+    ...
 ```
 
 ### Django Integration
 
+[Full example →](examples/django/)
+
 ```python
 # settings.py
 MIDDLEWARE = [
-    # ... other middleware
+    # ...
     'civic_auth.integrations.django.CivicAuthMiddleware',
 ]
 
 CIVIC_AUTH = {
     'client_id': 'your-client-id',
-    'redirect_url': 'http://localhost:8000/auth/callback',
+    'redirect_url': '...',
 }
 
 # urls.py
 from civic_auth.integrations.django import get_auth_urls
-
 urlpatterns = [
-    path('', include(get_auth_urls())),
-    # ... your urls
+    path('', include(get_auth_urls())),  # Adds /auth/* routes
+    # ...
 ]
 
 # views.py
@@ -121,8 +110,8 @@ from civic_auth.integrations.django import civic_auth_required
 
 @civic_auth_required
 def protected(request):
-    user = request.civic_user
-    return render(request, 'protected.html', {'user': user})
+    # user available via request.civic_user
+    ...
 ```
 
 ### Other Frameworks
@@ -131,31 +120,16 @@ def protected(request):
 from civic_auth import CivicAuth
 from civic_auth.storage import AuthStorage
 
-# Implement storage for your framework
 class MyStorage(AuthStorage):
-    async def get(self, key: str) -> Optional[str]:
-        # Get from cookies/session
-        pass
-    
-    async def set(self, key: str, value: str) -> None:
-        # Set to cookies/session
-        pass
-    
-    async def delete(self, key: str) -> None:
-        # Delete from cookies/session
-        pass
+    # Implement get/set/delete for your framework's session/cookies
+    ...
 
-# Use
 storage = MyStorage()
 civic_auth = CivicAuth(storage, config)
 
-# Build login URL
+# Use the API
 login_url = await civic_auth.build_login_url()
-
-# Exchange code for tokens
 await civic_auth.resolve_oauth_access_code(code, state)
-
-# Get user
 user = await civic_auth.get_user()
 ```
 

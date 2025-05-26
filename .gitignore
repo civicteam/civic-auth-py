@@ -70,6 +70,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/.doctrees/
 
 # PyBuilder
 target/
@@ -86,6 +87,13 @@ ipython_config.py
 
 # pipenv
 Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+pdm.lock
 
 # PEP 582
 __pypackages__/
@@ -132,7 +140,11 @@ dmypy.json
 *.swp
 *.swo
 *~
+
+# OS specific
 .DS_Store
+Thumbs.db
+Desktop.ini
 
 # uv
 .uv/
@@ -149,45 +161,12 @@ examples/django/media/
 *.temp
 *.bak
 
-# OS specific
-Thumbs.db
-.DS_Store
-Desktop.ini
-
-# Python virtual environments
-*.pyc
-.Python
-env/
-venv/
-.venv/
-ENV/
-env.bak/
-venv.bak/
-
 # Package files
 *.whl
 *.tar.gz
 *.zip
 
-# Test artifacts
-.pytest_cache/
-.coverage
-htmlcov/
-*.cover
-.hypothesis/
-
-# Build artifacts
-build/
-dist/
-*.egg-info/
-.eggs/
-
-# Documentation
-docs/_build/
-docs/.doctrees/
-
 # Logs
-*.log
 logs/
 
 # Cache

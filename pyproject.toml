@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
 authors = [
-    { name = "Civic Team", email = "support@civic.com" },
+    { name = "Daniel Kelleher", email = "daniel@civic.com" },
 ]
 keywords = ["civic", "auth", "authentication", "oauth", "oidc"]
 classifiers = [
@@ -45,6 +45,8 @@ dev = [
     "black>=23.0.0",
     "mypy>=1.0.0",
     "ruff>=0.1.0",
+    "build>=1.0.0",
+    "twine>=4.0.0",
 ]
 
 [project.urls]
@@ -61,6 +63,10 @@ minversion = "7.0"
 addopts = "-ra -q --strict-markers"
 testpaths = ["tests"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "django_db: mark test to use django database",
+]
 
 [tool.black]
 line-length = 100

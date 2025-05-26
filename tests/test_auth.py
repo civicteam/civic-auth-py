@@ -12,6 +12,15 @@ from civic_auth.exceptions import ConfigurationError, AuthenticationError
 from civic_auth.utils import generate_pkce_challenge, generate_random_string
 
 
+# Mock endpoints to avoid network calls during tests
+MOCK_ENDPOINTS = {
+    "authorization_endpoint": "https://auth.civic.com/oauth/authorize",
+    "token_endpoint": "https://auth.civic.com/oauth/token",
+    "end_session_endpoint": "https://auth.civic.com/oauth/logout",
+    "issuer": "https://auth.civic.com/oauth"
+}
+
+
 class MockStorage(AuthStorage):
     """Mock storage implementation for testing."""
     
@@ -71,6 +80,9 @@ class TestCivicAuth:
     @pytest.mark.asyncio
     async def test_build_login_url(self, civic_auth, mock_storage):
         """Test building login URL."""
+        # Mock the discover_endpoints to avoid network calls
+        civic_auth._endpoints = MOCK_ENDPOINTS
+        
         url = await civic_auth.build_login_url()
         
         assert url.startswith("https://auth.civic.com/oauth/authorize")
@@ -91,6 +103,9 @@ class TestCivicAuth:
     @pytest.mark.asyncio
     async def test_build_login_url_custom_scopes(self, civic_auth):
         """Test building login URL with custom scopes."""
+        # Mock the discover_endpoints to avoid network calls
+        civic_auth._endpoints = MOCK_ENDPOINTS
+        
         url = await civic_auth.build_login_url(scopes=["openid", "custom"])
         assert "scope=openid+custom" in url
     
@@ -173,6 +188,9 @@ class TestCivicAuth:
     @pytest.mark.asyncio
     async def test_build_logout_redirect_url(self, civic_auth, mock_storage):
         """Test building logout URL."""
+        # Mock the discover_endpoints to avoid network calls
+        civic_auth._endpoints = MOCK_ENDPOINTS
+        
         await mock_storage.set("civic_auth_id_token", "test-id-token")
         
         url = await civic_auth.build_logout_redirect_url()
