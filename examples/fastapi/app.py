@@ -1,15 +1,13 @@
 """FastAPI example app demonstrating Civic Auth integration."""
 
 import os
-from fastapi import FastAPI, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
-from dotenv import load_dotenv
 
-from civic_auth import CivicAuth, BaseUser
-from civic_auth.integrations.fastapi import (
-    create_auth_router,
-    create_auth_dependencies
-)
+from dotenv import load_dotenv
+from fastapi import Depends, FastAPI
+from fastapi.responses import HTMLResponse, RedirectResponse
+
+from civic_auth import BaseUser, CivicAuth
+from civic_auth.integrations.fastapi import create_auth_dependencies, create_auth_router
 
 load_dotenv()
 

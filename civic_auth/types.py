@@ -1,7 +1,7 @@
 """Type definitions for Civic Auth Python SDK."""
 
-from typing import TypedDict, Optional, Dict, Any
 from datetime import datetime
+from typing import Optional, TypedDict
 
 
 class BaseUser(TypedDict, total=False):

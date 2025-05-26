@@ -1,11 +1,12 @@
 """Flask integration for Civic Auth."""
 
-from typing import Optional, Dict, Any
 from functools import wraps
-from civic_auth import CivicAuth, CookieStorage, AuthConfig, BaseUser, CookieSettings
+from typing import Any, Dict, Optional
+
+from civic_auth import AuthConfig, BaseUser, CivicAuth, CookieSettings, CookieStorage
 
 try:
-    from flask import Request, Response, redirect, request, g, make_response, Blueprint
+    from flask import Blueprint, Request, Response, g, make_response, redirect, request
     from flask.wrappers import Response as FlaskResponse
 except ImportError:
     raise ImportError("Flask is not installed. Install it with: pip install civic-auth[flask]")

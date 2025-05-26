@@ -1,7 +1,8 @@
 """Storage implementations for Civic Auth."""
 
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any
+from typing import Optional
+
 from .types import CookieSettings
 
 

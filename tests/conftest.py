@@ -1,7 +1,9 @@
 """Pytest configuration and fixtures."""
 
+from typing import Any, Dict, Optional
+
 import pytest
-from typing import Dict, Any, Optional
+
 from civic_auth import AuthConfig, CookieStorage
 
 

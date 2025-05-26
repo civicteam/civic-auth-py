@@ -1,15 +1,16 @@
 """Flask example app demonstrating Civic Auth integration."""
 
 import os
-from flask import Flask, render_template_string
+
 from dotenv import load_dotenv
+from flask import Flask, render_template_string
 
 from civic_auth.integrations.flask import (
-    init_civic_auth,
-    create_auth_blueprint,
     civic_auth_required,
+    create_auth_blueprint,
     get_civic_auth,
-    get_civic_user
+    get_civic_user,
+    init_civic_auth,
 )
 
 load_dotenv()

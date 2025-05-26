@@ -1,9 +1,9 @@
 """Tests for FastAPI integration."""
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from civic_auth.integrations.fastapi import create_auth_router, create_auth_dependencies
+
+from civic_auth.integrations.fastapi import create_auth_dependencies, create_auth_router
 
 
 def test_create_auth_router(auth_config):

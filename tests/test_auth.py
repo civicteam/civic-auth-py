@@ -1,16 +1,14 @@
 """Tests for CivicAuth core functionality."""
 
-import pytest
-from unittest.mock import AsyncMock, patch
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+
 import jwt
+import pytest
 
 from civic_auth import CivicAuth
+from civic_auth.exceptions import ConfigurationError
 from civic_auth.storage import AuthStorage
-from civic_auth.types import AuthConfig
-from civic_auth.exceptions import ConfigurationError, AuthenticationError
 from civic_auth.utils import generate_pkce_challenge, generate_random_string
-
 
 # Mock endpoints to avoid network calls during tests
 MOCK_ENDPOINTS = {

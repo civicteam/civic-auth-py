@@ -1,24 +1,19 @@
 """Views for Civic Auth Django example."""
 
-from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect, render
 
-from civic_auth.integrations.django import (
-    civic_auth_required,
-    get_civic_auth,
-    run_async
-)
+from civic_auth.integrations.django import civic_auth_required, get_civic_auth, run_async
 
 
 def home(request):
     """Home page view - shows login button or redirects if logged in."""
     auth = get_civic_auth(request)
     is_logged_in = run_async(auth.is_logged_in())
-    
+
     if is_logged_in:
         return redirect('/admin/hello')
-    
+
     return render(request, 'home.html')
 
 

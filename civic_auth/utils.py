@@ -3,14 +3,11 @@
 import base64
 import hashlib
 import secrets
-import json
-from typing import Dict, Any, Optional
-from urllib.parse import urlencode, parse_qs, urlparse
 from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+from urllib.parse import urlencode
+
 import jwt
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend
 
 
 def generate_random_string(length: int = 32) -> str:

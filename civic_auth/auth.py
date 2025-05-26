@@ -1,22 +1,20 @@
 """Core CivicAuth implementation."""
 
-import json
-from typing import Optional, Dict, Any, List
-from urllib.parse import urlencode, parse_qs, urlparse
-import httpx
 from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
 
+import httpx
+
+from .exceptions import AuthenticationError, ConfigurationError
 from .storage import AuthStorage
-from .types import BaseUser, AuthConfig, Tokens, PKCEChallenge
+from .types import AuthConfig, BaseUser, Tokens
 from .utils import (
-    generate_random_string,
-    generate_pkce_challenge,
     build_url,
-    parse_jwt_without_validation,
+    generate_pkce_challenge,
+    generate_random_string,
     is_token_expired,
-    get_token_expiry,
+    parse_jwt_without_validation,
 )
-from .exceptions import AuthenticationError, TokenValidationError, ConfigurationError
 
 
 class CivicAuth:

@@ -1,10 +1,11 @@
 """FastAPI integration for Civic Auth."""
 
-from typing import Optional, Dict, Any
-from civic_auth import CivicAuth, CookieStorage, AuthConfig, BaseUser, CookieSettings
+from typing import Optional
+
+from civic_auth import AuthConfig, BaseUser, CivicAuth, CookieSettings, CookieStorage
 
 try:
-    from fastapi import Request, Response, Depends, HTTPException, status, APIRouter
+    from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
     from fastapi.responses import RedirectResponse
 except ImportError:
     raise ImportError("FastAPI is not installed. Install it with: pip install civic-auth[fastapi]")

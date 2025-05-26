@@ -1,8 +1,8 @@
 """Tests for Flask integration."""
 
-import pytest
 from flask import Flask
-from civic_auth.integrations.flask import init_civic_auth, create_auth_blueprint
+
+from civic_auth.integrations.flask import create_auth_blueprint, init_civic_auth
 
 
 def test_init_civic_auth(auth_config):

@@ -1,17 +1,17 @@
 """Django integration for Civic Auth."""
 
 import asyncio
-from typing import Optional, Dict, Any, Callable
 from functools import wraps
-from civic_auth import CivicAuth, CookieStorage, AuthConfig, BaseUser, CookieSettings
-from civic_auth.exceptions import AuthenticationError
+from typing import Any, Dict, Optional
+
+from civic_auth import AuthConfig, BaseUser, CivicAuth, CookieSettings, CookieStorage
 
 try:
-    from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
-    from django.core.exceptions import ImproperlyConfigured
-    from django.utils.decorators import sync_and_async_middleware
     from django.conf import settings
+    from django.core.exceptions import ImproperlyConfigured
+    from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
     from django.urls import path
+    from django.utils.decorators import sync_and_async_middleware
 except ImportError:
     raise ImportError("Django is not installed. Install it with: pip install civic-auth[django]")
 

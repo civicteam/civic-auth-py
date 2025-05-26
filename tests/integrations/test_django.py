@@ -1,7 +1,6 @@
 """Tests for Django integration."""
 
 import os
-import pytest
 
 # Configure Django settings before importing Django modules
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.django_settings")
@@ -10,14 +9,14 @@ import django
 
 django.setup()
 
-from django.test import RequestFactory
 from django.http import HttpResponse
+from django.test import RequestFactory
+
 from civic_auth.integrations.django import (
     CivicAuthMiddleware,
+    DjangoCookieStorage,
     civic_auth_required,
     get_auth_urls,
-    get_civic_auth,
-    DjangoCookieStorage,
 )
 
 
