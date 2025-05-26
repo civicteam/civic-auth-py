@@ -48,7 +48,8 @@ def parse_jwt_without_validation(token: str) -> Dict[str, Any]:
     """Parse JWT without validation to extract claims."""
     try:
         # Decode without verification to get claims
-        return jwt.decode(token, options={"verify_signature": False})
+        decoded: Dict[str, Any] = jwt.decode(token, options={"verify_signature": False})
+        return decoded
     except Exception:
         return {}
 

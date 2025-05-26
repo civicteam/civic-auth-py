@@ -38,7 +38,7 @@ class CivicAuth:
         self.config = self._validate_config(config)
         self.oauth_server = config.get("oauth_server", self.DEFAULT_OAUTH_SERVER)
         self.client = httpx.AsyncClient()
-        self._endpoints = None  # Will be populated by OIDC discovery
+        self._endpoints: Optional[Dict[str, str]] = None  # Will be populated by OIDC discovery
         self._discovery_url = f"{self.oauth_server}/.well-known/openid-configuration"
 
     def _validate_config(self, config: AuthConfig) -> AuthConfig:
@@ -226,7 +226,7 @@ class CivicAuth:
         await self.storage.delete(self.NONCE_KEY)
         await self.storage.delete(self.PKCE_VERIFIER_KEY)
 
-        return tokens
+        return Tokens(**tokens)
 
     async def refresh_tokens(self) -> Tokens:
         """Refresh access tokens using refresh token."""
@@ -250,7 +250,7 @@ class CivicAuth:
         tokens = response.json()
         await self._store_tokens(tokens)
 
-        return tokens
+        return Tokens(**tokens)
 
     async def build_logout_redirect_url(self) -> str:
         """Build the logout URL."""
@@ -292,10 +292,10 @@ class CivicAuth:
             expiry = datetime.now(timezone.utc) + timedelta(seconds=tokens["expires_in"])
             await self.storage.set(self.TOKEN_EXPIRY_KEY, expiry.isoformat())
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "CivicAuth":
         """Async context manager entry."""
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Async context manager exit - close HTTP client."""
         await self.client.aclose()
