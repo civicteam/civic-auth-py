@@ -8,7 +8,9 @@ try:
     from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
     from fastapi.responses import RedirectResponse
 except ImportError as e:
-    raise ImportError("FastAPI is not installed. Install it with: pip install civic-auth[fastapi]") from e
+    raise ImportError(
+        "FastAPI is not installed. Install it with: pip install civic-auth[fastapi]"
+    ) from e
 
 
 class FastAPICookieStorage(CookieStorage):

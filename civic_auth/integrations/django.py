@@ -12,7 +12,9 @@ try:
     from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
     from django.urls import path
 except ImportError as e:
-    raise ImportError("Django is not installed. Install it with: pip install civic-auth[django]") from e
+    raise ImportError(
+        "Django is not installed. Install it with: pip install civic-auth[django]"
+    ) from e
 
 
 class DjangoCookieStorage(CookieStorage):

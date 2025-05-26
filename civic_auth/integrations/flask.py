@@ -9,7 +9,9 @@ try:
     from flask import Blueprint, Request, g, make_response, redirect, request
     from flask.wrappers import Response as FlaskResponse
 except ImportError as e:
-    raise ImportError("Flask is not installed. Install it with: pip install civic-auth[flask]") from e
+    raise ImportError(
+        "Flask is not installed. Install it with: pip install civic-auth[flask]"
+    ) from e
 
 
 class FlaskCookieStorage(CookieStorage):

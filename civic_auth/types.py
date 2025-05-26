@@ -1,7 +1,7 @@
 """Type definitions for Civic Auth Python SDK."""
 
 from datetime import datetime
-from typing import Optional, TypedDict
+from typing import List, Optional, TypedDict
 
 
 class BaseUser(TypedDict, total=False):
@@ -37,7 +37,7 @@ class AuthConfig(TypedDict, total=False):
     challenge_url: Optional[str]
     refresh_url: Optional[str]
     post_logout_redirect_url: Optional[str]
-    scopes: Optional[list[str]]
+    scopes: Optional[List[str]]
 
 
 class PKCEChallenge(TypedDict):
