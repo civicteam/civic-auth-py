@@ -3,13 +3,19 @@
 import asyncio
 from typing import Optional, Dict, Any, Callable
 from functools import wraps
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
-from django.core.exceptions import ImproperlyConfigured
-from django.utils.decorators import sync_and_async_middleware
-from django.conf import settings
-
 from civic_auth import CivicAuth, CookieStorage, AuthConfig, BaseUser, CookieSettings
 from civic_auth.exceptions import AuthenticationError
+
+try:
+    from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
+    from django.core.exceptions import ImproperlyConfigured
+    from django.utils.decorators import sync_and_async_middleware
+    from django.conf import settings
+    from django.urls import path
+except ImportError:
+    raise ImportError(
+        "Django is not installed. Install it with: pip install civic-auth[django]"
+    )
 
 
 class DjangoCookieStorage(CookieStorage):
@@ -127,7 +133,7 @@ def civic_auth_required(view_func):
         if not hasattr(request, 'civic_auth'):
             raise ImproperlyConfigured(
                 "CivicAuthMiddleware not installed. "
-                "Add 'civic_app.civic_auth_django.CivicAuthMiddleware' to MIDDLEWARE."
+                "Add 'civic_auth.integrations.django.CivicAuthMiddleware' to MIDDLEWARE."
             )
         
         # Check authentication in async context
@@ -155,7 +161,7 @@ def civic_auth_required_async(view_func):
         if not hasattr(request, 'civic_auth'):
             raise ImproperlyConfigured(
                 "CivicAuthMiddleware not installed. "
-                "Add 'civic_app.civic_auth_django.CivicAuthMiddleware' to MIDDLEWARE."
+                "Add 'civic_auth.integrations.django.CivicAuthMiddleware' to MIDDLEWARE."
             )
         
         if not await request.civic_auth.is_logged_in():
@@ -183,7 +189,7 @@ def get_civic_auth(request) -> CivicAuth:
     if not hasattr(request, 'civic_auth'):
         raise ImproperlyConfigured(
             "CivicAuthMiddleware not installed. "
-            "Add 'civic_app.civic_auth_django.CivicAuthMiddleware' to MIDDLEWARE."
+            "Add 'civic_auth.integrations.django.CivicAuthMiddleware' to MIDDLEWARE."
         )
     return request.civic_auth
 
@@ -198,3 +204,82 @@ async def get_civic_user_async(request) -> Optional[BaseUser]:
     """Get current user asynchronously."""
     auth = get_civic_auth(request)
     return await auth.get_user()
+
+
+# Auth views for Django
+def login(request):
+    """Redirect to Civic Auth login."""
+    auth = get_civic_auth(request)
+    url = run_async(auth.build_login_url())
+    
+    # Create redirect response and apply cookies
+    response = HttpResponseRedirect(url)
+    if hasattr(request, 'civic_storage'):
+        request.civic_storage.apply_to_response(response)
+    
+    return response
+
+
+def callback(request):
+    """Handle OAuth callback."""
+    code = request.GET.get('code')
+    state = request.GET.get('state')
+    
+    if not code or not state:
+        return HttpResponse("Missing code or state parameter", status=400)
+    
+    auth = get_civic_auth(request)
+    try:
+        run_async(auth.resolve_oauth_access_code(code, state))
+        
+        # Create redirect response and apply cookies
+        response = HttpResponseRedirect('/admin/hello')
+        if hasattr(request, 'civic_storage'):
+            request.civic_storage.apply_to_response(response)
+        
+        return response
+    except Exception as e:
+        return HttpResponse(f"Auth failed: {str(e)}", status=400)
+
+
+def logout(request):
+    """Logout and redirect."""
+    auth = get_civic_auth(request)
+    url = run_async(auth.build_logout_redirect_url())
+    
+    # Create redirect response and apply cookies
+    response = HttpResponseRedirect(url)
+    if hasattr(request, 'civic_storage'):
+        request.civic_storage.apply_to_response(response)
+    
+    return response
+
+
+def logout_callback(request):
+    """Handle logout callback from Civic Auth."""
+    # Simply redirect to home after logout is complete
+    return HttpResponseRedirect('/')
+
+
+@civic_auth_required
+def get_user(request):
+    """Get current user info."""
+    user = request.civic_user
+    return JsonResponse({
+        'id': user.id,
+        'email': user.email,
+        'name': user.name,
+        'picture': user.picture
+    })
+
+
+# URL patterns for auth endpoints
+def get_auth_urls():
+    """Get Django URL patterns for auth endpoints."""
+    return [
+        path('auth/login/', login, name='civic_auth_login'),
+        path('auth/callback/', callback, name='civic_auth_callback'),
+        path('auth/logout/', logout, name='civic_auth_logout'),
+        path('auth/logoutcallback/', logout_callback, name='civic_auth_logout_callback'),
+        path('auth/user/', get_user, name='civic_auth_user'),
+    ]

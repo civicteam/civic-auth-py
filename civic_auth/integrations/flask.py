@@ -2,10 +2,15 @@
 
 from typing import Optional, Dict, Any
 from functools import wraps
-from flask import Request, Response, redirect, request, g, make_response
-from flask.wrappers import Response as FlaskResponse
-
 from civic_auth import CivicAuth, CookieStorage, AuthConfig, BaseUser, CookieSettings
+
+try:
+    from flask import Request, Response, redirect, request, g, make_response, Blueprint
+    from flask.wrappers import Response as FlaskResponse
+except ImportError:
+    raise ImportError(
+        "Flask is not installed. Install it with: pip install civic-auth[flask]"
+    )
 
 
 class FlaskCookieStorage(CookieStorage):
@@ -105,6 +110,63 @@ def init_civic_auth(app, config: AuthConfig):
         return response
     
     return app
+
+
+def create_auth_blueprint(config: AuthConfig) -> Blueprint:
+    """Create a Flask blueprint with auth endpoints."""
+    auth_bp = Blueprint('civic_auth', __name__)
+    
+    @auth_bp.route('/auth/login')
+    async def login():
+        """Redirect to Civic Auth login."""
+        auth = g.civic_auth
+        url = await auth.build_login_url()
+        
+        response = redirect(url)
+        g.civic_storage.apply_to_response(response)
+        return response
+    
+    @auth_bp.route('/auth/callback')
+    async def callback():
+        """Handle OAuth callback."""
+        code = request.args.get('code')
+        state = request.args.get('state')
+        
+        if not code or not state:
+            return make_response("Missing code or state parameter", 400)
+        
+        auth = g.civic_auth
+        try:
+            await auth.resolve_oauth_access_code(code, state)
+            response = redirect('/')
+            g.civic_storage.apply_to_response(response)
+            return response
+        except Exception as e:
+            return make_response(f"Auth failed: {str(e)}", 400)
+    
+    @auth_bp.route('/auth/logout')
+    async def logout():
+        """Logout and redirect."""
+        auth = g.civic_auth
+        url = await auth.build_logout_redirect_url()
+        
+        response = redirect(url)
+        g.civic_storage.apply_to_response(response)
+        return response
+    
+    @auth_bp.route('/auth/user')
+    @civic_auth_required
+    async def get_user():
+        """Get current user info."""
+        return g.civic_user
+    
+    @auth_bp.route('/auth/logoutcallback')
+    async def logout_callback():
+        """Handle logout callback from Civic Auth."""
+        # Simply redirect to home after logout is complete
+        return redirect('/')
+    
+    return auth_bp
 
 
 # Convenience functions for Flask routes

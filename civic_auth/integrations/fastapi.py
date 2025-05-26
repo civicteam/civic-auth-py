@@ -1,10 +1,15 @@
 """FastAPI integration for Civic Auth."""
 
 from typing import Optional, Dict, Any
-from fastapi import Request, Response, Depends, HTTPException, status
-from fastapi.responses import RedirectResponse
-
 from civic_auth import CivicAuth, CookieStorage, AuthConfig, BaseUser, CookieSettings
+
+try:
+    from fastapi import Request, Response, Depends, HTTPException, status, APIRouter
+    from fastapi.responses import RedirectResponse
+except ImportError:
+    raise ImportError(
+        "FastAPI is not installed. Install it with: pip install civic-auth[fastapi]"
+    )
 
 
 class FastAPICookieStorage(CookieStorage):
@@ -92,11 +97,8 @@ def create_auth_dependencies(config: AuthConfig):
     return civic_auth_dep, get_current_user, require_auth
 
 
-# Router factory for auth endpoints
-def create_auth_router(config: AuthConfig):
+def create_auth_router(config: AuthConfig) -> APIRouter:
     """Create a FastAPI router with auth endpoints."""
-    from fastapi import APIRouter
-    
     router = APIRouter()
     civic_auth_dep, get_current_user, require_auth = create_auth_dependencies(config)
     
@@ -165,5 +167,11 @@ def create_auth_router(config: AuthConfig):
     async def get_user(user: BaseUser = Depends(get_current_user)):
         """Get current user info."""
         return user
+    
+    @router.get("/auth/logoutcallback")
+    async def logout_callback(state: Optional[str] = None):
+        """Handle logout callback from Civic Auth."""
+        # Simply redirect to home after logout is complete
+        return RedirectResponse(url="/", status_code=302)
     
     return router

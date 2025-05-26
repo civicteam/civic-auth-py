@@ -30,7 +30,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'civic_app.civic_auth_django.CivicAuthMiddleware',  # Add Civic Auth middleware
+    'civic_auth.integrations.django.CivicAuthMiddleware',  # Add Civic Auth middleware
 ]
 
 ROOT_URLCONF = 'civic_example.urls'

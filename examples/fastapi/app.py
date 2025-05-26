@@ -1,13 +1,12 @@
 """FastAPI example app demonstrating Civic Auth integration."""
 
 import os
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from dotenv import load_dotenv
 
 from civic_auth import CivicAuth, BaseUser
-from civic_auth_fastapi import (
-    create_civic_auth_dependency,
+from civic_auth.integrations.fastapi import (
     create_auth_router,
     create_auth_dependencies
 )
@@ -77,13 +76,6 @@ async def home(civic_auth: CivicAuth = Depends(civic_auth_dep)):
 async def admin_hello(user: BaseUser = Depends(get_current_user)):
     """Protected admin page."""
     return admin_html(user)
-
-
-@app.get("/auth/logoutcallback")
-async def logout_callback(state: str = None):
-    """Handle logout callback."""
-    print(f"Logout-callback: state={state}")
-    return RedirectResponse(url="/")
 
 
 if __name__ == "__main__":

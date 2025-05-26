@@ -1,4 +1,4 @@
-# Django Example
+# Flask Example
 
 ## Setup
 
@@ -21,7 +21,7 @@ CLIENT_ID=your_civic_client_id
 ## Run
 
 ```bash
-python manage.py runserver
+python app.py
 ```
 
 Visit http://localhost:8000

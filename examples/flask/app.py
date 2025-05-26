@@ -1,13 +1,12 @@
 """Flask example app demonstrating Civic Auth integration."""
 
 import os
-import asyncio
-from flask import Flask, redirect, request, render_template_string
+from flask import Flask, render_template_string
 from dotenv import load_dotenv
 
-from civic_auth import CivicAuth
-from civic_auth_flask import (
+from civic_auth.integrations.flask import (
     init_civic_auth,
+    create_auth_blueprint,
     civic_auth_required,
     get_civic_auth,
     get_civic_user
@@ -28,6 +27,10 @@ config = {
 
 # Initialize Civic Auth
 init_civic_auth(app, config)
+
+# Add auth blueprint
+auth_bp = create_auth_blueprint(config)
+app.register_blueprint(auth_bp)
 
 # Home page template
 HOME_TEMPLATE = """
@@ -52,7 +55,7 @@ ADMIN_TEMPLATE = """
     <title>Admin - Civic Auth Flask Example</title>
 </head>
 <body>
-    <h1>Hello, {{ user.name }}!</h1>
+    <h1>Hello, {{ user.name or user.email }}!</h1>
     <p>Welcome to the admin area.</p>
     <p>Your email: {{ user.email }}</p>
     <p>Your ID: {{ user.id }}</p>
@@ -64,36 +67,12 @@ ADMIN_TEMPLATE = """
 
 @app.route("/")
 async def home():
-    """Home page - redirects to login."""
+    """Home page - shows login button or redirects if logged in."""
+    from flask import redirect
     auth = await get_civic_auth()
     if await auth.is_logged_in():
         return redirect("/admin/hello")
     return render_template_string(HOME_TEMPLATE)
-
-
-@app.route("/auth/login")
-async def login():
-    """Redirect to Civic Auth login."""
-    auth = await get_civic_auth()
-    url = await auth.build_login_url()
-    return redirect(url)
-
-
-@app.route("/auth/callback")
-async def callback():
-    """Handle OAuth callback."""
-    code = request.args.get("code")
-    state = request.args.get("state")
-    
-    if not code or not state:
-        return "Missing code or state parameter", 400
-    
-    auth = await get_civic_auth()
-    try:
-        await auth.resolve_oauth_access_code(code, state)
-        return redirect("/admin/hello")
-    except Exception as e:
-        return f"Authentication failed: {str(e)}", 400
 
 
 @app.route("/admin/hello")
@@ -104,34 +83,6 @@ async def admin_hello():
     return render_template_string(ADMIN_TEMPLATE, user=user)
 
 
-@app.route("/auth/logout")
-async def logout():
-    """Logout and redirect."""
-    auth = await get_civic_auth()
-    url = await auth.build_logout_redirect_url()
-    return redirect(url)
-
-
-@app.route("/auth/logoutcallback")
-async def logout_callback():
-    """Handle logout callback."""
-    state = request.args.get("state")
-    print(f"Logout-callback: state={state}")
-    
-    # Clear any remaining session data
-    auth = await get_civic_auth()
-    await auth.clear_tokens()
-    
-    return redirect("/")
-
-
 if __name__ == "__main__":
-    # Run with asyncio support
-    import hypercorn.asyncio
-    from hypercorn.config import Config
-    
-    config = Config()
-    config.bind = [f"localhost:{PORT}"]
-    
-    print(f"Server is running on http://localhost:{PORT}")
-    asyncio.run(hypercorn.asyncio.serve(app, config))
+    # Run Flask app
+    app.run(host="0.0.0.0", port=PORT, debug=True)
