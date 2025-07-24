@@ -232,7 +232,7 @@ def callback(request):
         run_async(auth.resolve_oauth_access_code(code, state))
 
         # Get redirect URL from settings or default to home
-        redirect_url = getattr(settings, 'CIVIC_AUTH_SUCCESS_REDIRECT_URL', '/')
+        redirect_url = getattr(settings, "CIVIC_AUTH_SUCCESS_REDIRECT_URL", "/")
 
         # Create redirect response and apply cookies
         response = HttpResponseRedirect(redirect_url)
