@@ -1,7 +1,7 @@
 """Tests for Django integration."""
 
 import os
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 # Configure Django settings before importing Django modules
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.django_settings")

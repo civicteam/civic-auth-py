@@ -233,7 +233,7 @@ def callback(request):
 
         # Get redirect URL from settings or default to home
         redirect_url = getattr(settings, 'CIVIC_AUTH_SUCCESS_REDIRECT_URL', '/')
-        
+
         # Create redirect response and apply cookies
         response = HttpResponseRedirect(redirect_url)
         if hasattr(request, "civic_storage"):
