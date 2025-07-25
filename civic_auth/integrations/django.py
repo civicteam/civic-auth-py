@@ -231,8 +231,11 @@ def callback(request):
     try:
         run_async(auth.resolve_oauth_access_code(code, state))
 
+        # Get redirect URL from settings or default to home
+        redirect_url = getattr(settings, "CIVIC_AUTH_SUCCESS_REDIRECT_URL", "/")
+
         # Create redirect response and apply cookies
-        response = HttpResponseRedirect("/admin/hello")
+        response = HttpResponseRedirect(redirect_url)
         if hasattr(request, "civic_storage"):
             request.civic_storage.apply_to_response(response)
 

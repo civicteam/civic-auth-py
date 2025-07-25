@@ -1,6 +1,7 @@
 """Tests for Django integration."""
 
 import os
+from unittest.mock import patch
 
 # Configure Django settings before importing Django modules
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.django_settings")
@@ -11,11 +12,12 @@ django.setup()
 
 # noqa imports below need to come after django.setup()
 from django.http import HttpResponse  # noqa: E402
-from django.test import RequestFactory  # noqa: E402
+from django.test import RequestFactory, override_settings  # noqa: E402
 
 from civic_auth.integrations.django import (  # noqa: E402
     CivicAuthMiddleware,
     DjangoCookieStorage,
+    callback,
     civic_auth_required,
     get_auth_urls,
 )
@@ -84,3 +86,106 @@ class TestDjangoIntegration:
         response = protected_view(request)
         assert response.status_code == 401
         assert response.content == b"Unauthorized"
+
+    @patch("civic_auth.integrations.django.run_async")
+    def test_callback_default_redirect(self, mock_run_async):
+        """Test callback redirects to default '/' when no custom redirect URL is set."""
+        from civic_auth import CivicAuth
+
+        # Mock the async auth operations
+        mock_run_async.return_value = None
+
+        factory = RequestFactory()
+        request = factory.get("/auth/callback?code=test-code&state=test-state")
+
+        # Add middleware attributes to simulate middleware running
+        config = {
+            "client_id": "test-client-id",
+            "redirect_url": "http://localhost:8000/auth/callback",
+        }
+        request.civic_storage = DjangoCookieStorage(request)
+        request.civic_auth = CivicAuth(request.civic_storage, config)
+
+        response = callback(request)
+
+        # Should redirect to default "/"
+        assert response.status_code == 302
+        assert response.url == "/"
+
+    @override_settings(CIVIC_AUTH_SUCCESS_REDIRECT_URL="/dashboard")
+    @patch("civic_auth.integrations.django.run_async")
+    def test_callback_custom_redirect(self, mock_run_async):
+        """Test callback redirects to custom URL when CIVIC_AUTH_SUCCESS_REDIRECT_URL is set."""
+        from civic_auth import CivicAuth
+
+        # Mock the async auth operations
+        mock_run_async.return_value = None
+
+        factory = RequestFactory()
+        request = factory.get("/auth/callback?code=test-code&state=test-state")
+
+        # Add middleware attributes to simulate middleware running
+        config = {
+            "client_id": "test-client-id",
+            "redirect_url": "http://localhost:8000/auth/callback",
+        }
+        request.civic_storage = DjangoCookieStorage(request)
+        request.civic_auth = CivicAuth(request.civic_storage, config)
+
+        response = callback(request)
+
+        # Should redirect to custom URL
+        assert response.status_code == 302
+        assert response.url == "/dashboard"
+
+    def test_callback_missing_parameters(self):
+        """Test callback returns 400 when code or state parameters are missing."""
+        from civic_auth import CivicAuth
+
+        factory = RequestFactory()
+
+        # Test missing code
+        request = factory.get("/auth/callback?state=test-state")
+        config = {
+            "client_id": "test-client-id",
+            "redirect_url": "http://localhost:8000/auth/callback",
+        }
+        request.civic_storage = DjangoCookieStorage(request)
+        request.civic_auth = CivicAuth(request.civic_storage, config)
+
+        response = callback(request)
+        assert response.status_code == 400
+        assert "Missing code or state parameter" in response.content.decode()
+
+        # Test missing state
+        request = factory.get("/auth/callback?code=test-code")
+        request.civic_storage = DjangoCookieStorage(request)
+        request.civic_auth = CivicAuth(request.civic_storage, config)
+
+        response = callback(request)
+        assert response.status_code == 400
+        assert "Missing code or state parameter" in response.content.decode()
+
+    @patch("civic_auth.integrations.django.run_async")
+    def test_callback_auth_failure(self, mock_run_async):
+        """Test callback returns 400 when authentication fails."""
+        from civic_auth import CivicAuth
+
+        # Mock auth failure
+        mock_run_async.side_effect = Exception("Auth failed")
+
+        factory = RequestFactory()
+        request = factory.get("/auth/callback?code=test-code&state=test-state")
+
+        config = {
+            "client_id": "test-client-id",
+            "redirect_url": "http://localhost:8000/auth/callback",
+        }
+        request.civic_storage = DjangoCookieStorage(request)
+        request.civic_auth = CivicAuth(request.civic_storage, config)
+
+        response = callback(request)
+
+        # Should return 400 with error message
+        assert response.status_code == 400
+        assert "Auth failed: Auth failed" in response.content.decode()
